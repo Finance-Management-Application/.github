@@ -3,114 +3,138 @@
 ## 1. Overview
 
 ### **Bird's Eye View**
-The Finance Management Application is a tool designed for tracking and analyzing your financial data, including income, investments, and expenses. This application bridges the gap between day-to-day data entry in Excel workbooks and powerful analysis and visualization capabilities through a modern web interface.
+The Finance Management Application is a comprehensive tool designed for tracking, analyzing, and visualizing financial data, including income, investments, and expenses. It bridges the gap between day-to-day data entry in Excel workbooks and powerful analysis via a modern web interface.
 
 ### **Day-to-Day Workflow**
-- **Data Entry:** Users will continue recording their financial data in existing Excel workbooks.
-  - **Expenses:** Separate workbooks for each year, with sheets for transactions, categories, and subcategories.
-  - **Income:** Separate workbooks for each year, with sheets for income streams, categories, and subcategories. 
-  - **Investments:** Separate workbooks for each year, dedicated to tracking investment portfolios.
-  The reason to make separate workbooks is because excel might not be able to handle high volume of rows and might get corrupt which may lead to loss or inconsistent data.
-- **Data Migration:** The application supports periodic and on-demand synchronization:
-  - Weekly for expenses.
-  - Monthly for income and investments.
-  - On demand of user, data migration can happen.
-- **Analysis and Visualization:** After synchronization, users can analyze trends, track net worth, and visualize spending habits via the web application.
+- **Data Entry:** 
+  - Users record financial data in separate Excel workbooks for each year.
+  - Categories:
+    - **Expenses:** Transactions, Category, and Sub Category.
+    - **Income:** Income, Income streams
+    - **Investments:** Investment, Asset Class.
+
+  _Note: The yearly workbook format minimizes risks of data corruption from large datasets._
+
+- **Data Migration:** The application supports:
+  - **Weekly synchronization** for expenses.
+  - **Monthly synchronization** for income and investments.
+  - **On-demand synchronization** triggered by the user.
+
+- **Analysis and Visualization:** The synchronized data is analyzed for trends, net worth tracking, and spending insights via the web interface.
 
 ---
 
 ## 2. Backend Architecture
 
-The backend follows a **microservice architecture** for scalability and maintainability. Each service is built using **FastAPI** and integrates seamlessly with PostgreSQL for data storage.
+The backend uses a **microservice architecture** to ensure scalability and maintainability. Each service is developed using **FastAPI** and utilizes **PostgreSQL** for storage.
 
 ### **Microservices**
-1. **Data Migration Service:**
-   - Imports data from Excel files to the database.
-   - Supports scheduled synchronization tasks.
-   - Automatic Handling of schema changes (future feature). I NEED TO GIVE MORE THOUGHTS TO THIS.
 
-   Tech Stack: 
-   Openpyxl will be used to extract data from excel sheet
-   Pydantic models are used for validating the extracted data
+#### **1. Data Extraction Service** 
+- **Purpose:** Extracts and validates data from Excel files stored in a predefined folder hierarchy.
+- **Endpoints:**
+  - `GET /transactions` – Retrieve transactions (supports pagination).
+  - `GET /transactions/all` – Retrieve all transactions.
+  - `GET /categories` – Retrieve all categories.
+  - `GET /subcategories` – Retrieve all subcategories.
+  - `GET /products` – Extract products from the expense workbook.
+  - `POST /validate` – Validate the structure and data of an uploaded Excel file.
+- **Data Folder Hierarchy:**
+  ```
+  data/
+    income/
+      2024/
+      2023/
+    investment/
+      2024/
+      2023/
+    expense/
+      2024/
+      2023/
+  ```
+- **Tech Stack:** 
+  - **Openpyxl** for data extraction.
+  - **Pydantic** for validation.
+- _Future Enhancements:_ Automated schema evolution handling.
 
-   Input to this service is a command
+#### **2. Expense Management Service**
+- Manages expenses, including transactions, categories, and subcategories.
+- Provides APIs for advanced filtering and querying.
 
-2. **Expense Management Service:**
-   - Manages expense data, including transactions, categories, and subcategories.
-   - Offers APIs for filtering and querying expense data.
+#### **3. Income Management Service**
+- Tracks income sources, trends, and history.
+- Offers APIs for querying and data retrieval.
 
-3. **Income Management Service:**
-   - Handles income data and tracks trends.
-   - Provides APIs for querying income sources and history.
+#### **4. Investment Management Service**
+- Handles portfolio tracking and performance metrics.
+- Provides APIs for accessing historical and real-time data.
 
-4. **Investment Management Service:**
-   - Manages investment portfolios and performance tracking.
-   - Facilitates APIs for accessing historical and real-time metrics.
+#### **5. Analytics and Visualization Service**
+- Enables budget analysis, trend evaluation, and net worth tracking.
+- Generates visualization data using **Chart.js** (initial) and **D3.js** (future).
 
-5. **Analytics and Visualization Service:**
-   - Performs analysis such as budgeting, trend evaluation, and net worth tracking.
-   - Generates data for visualization using Chart.js (initial) and D3.js (future).
+#### **6. Authentication and User Management Service**
+- Implements user authentication with role-based access control.
+- Prepares for token-based authentication for mobile support.
 
-6. **Authentication and User Management Service:**
-   - Implements user authentication with role-based access for the main user and guest users.
-   - Prepares for token-based authentication for future mobile compatibility.
+#### **7. Notification Service**
+- Sends alerts for synchronization events and anomalies in spending.
+- Provides APIs to manage notification preferences.
 
-7. **Notification Service:**
-   - Sends notifications for synchronization events and spending anomalies.
-   - Manages notification preferences through APIs.
-
-8. **Audit and Logging Service:**
-   - Tracks data changes and synchronization activities for debugging and auditing.
+#### **8. Audit and Logging Service**
+- Tracks data changes and synchronization activities for auditing and debugging.
 
 ### **Database**
-- **Database:** PostgreSQL
-- **ORM:** SQLAlchemy for database interaction, ensuring flexibility in schema management.
+- **Database:** PostgreSQL.
+- **ORM:** SQLAlchemy for schema management and interactions.
 
 ---
 
 ## 3. Frontend Architecture
 
-The frontend is a **React-based web application** designed for intuitive interaction and data visualization.
+The frontend is a **React-based** application, providing a user-friendly interface and robust data visualization.
 
 ### **Key Features**
-- **Dashboard:** Provides a summary of income, expenses, and investments.
-- **Charts and Graphs:** Visualize financial data using Chart.js and later D3.js for advanced custom visualizations.
-- **Filters:** Enable filtering by time period, categories, and other criteria for granular insights.
-- **User Access:** Role-based features for main users and guest users.
+- **Dashboard:** Overview of income, expenses, and investments.
+- **Visualization:** Interactive charts using **Chart.js** and **D3.js**.
+- **Filtering:** Granular filtering options by time, category, and subcategory.
+- **Role-Based Access:** Custom views for main and guest users.
 
 ### **Component Structure**
-- **Dashboard:** Central hub for all financial insights.
-- **Expense View:** Dedicated view for exploring expense data by year, category, and subcategory.
-- **Income View:** Visualize income trends and sources.
-- **Investment View:** Analyze portfolio performance.
-- **Settings:** Manage user preferences and synchronization schedules.
+1. **Dashboard:** Central hub for financial insights.
+2. **Expense View:** Explore expenses by year, category, and subcategory.
+3. **Income View:** Analyze income trends and sources.
+4. **Investment View:** Track portfolio performance.
+5. **Settings:** Manage preferences and synchronization schedules.
 
 ---
 
 ## 4. DevOps and Hosting
 
-The application will be hosted on **AWS** to ensure reliability, scalability, and high availability.
+The application is deployed on **AWS** to ensure scalability, reliability, and security.
 
 ### **AWS Infrastructure**
-1. **Backend:**
-   - Services deployed using **Amazon ECS (Elastic Container Service)** with Docker containers.
-   - **AWS RDS** for PostgreSQL as the database.
-   - **AWS Lambda** for running scheduled synchronization tasks.
-   - **API Gateway** for secure access to backend services.
 
-2. **Frontend:**
-   - Hosted using **Amazon S3** for static assets and **CloudFront** for CDN distribution.
-   - SSL/TLS for secure communication.
+#### **Backend**
+- **Amazon ECS:** Hosts backend microservices using Docker containers.
+- **AWS RDS:** PostgreSQL database for data persistence.
+- **AWS Lambda:** Executes scheduled synchronization tasks.
+- **API Gateway:** Facilitates secure access to backend services.
 
-3. **Monitoring and Logging:**
-   - **AWS CloudWatch** for logging and monitoring.
-   - **AWS X-Ray** for tracing requests across microservices.
+#### **Frontend**
+- **Amazon S3:** Hosts static assets for the React application.
+- **CloudFront:** Ensures fast content delivery via CDN.
+- **SSL/TLS:** Secures communication.
 
-4. **Authentication and Security:**
-   - **AWS Cognito** for managing user authentication and roles.
-   - **IAM Roles** for access control to AWS resources.
+#### **Monitoring and Logging**
+- **AWS CloudWatch:** Tracks application logs and performance.
+- **AWS X-Ray:** Provides distributed tracing across microservices.
 
-5. **CI/CD Pipeline:**
-   - **AWS CodePipeline** integrated with GitHub for continuous integration.
-   - **AWS CodeBuild** for automated builds.
-   - **AWS CodeDeploy** for deploying updates seamlessly.
+#### **Authentication and Security**
+- **AWS Cognito:** Manages user authentication and role-based access.
+- **IAM Roles:** Ensures secure access to AWS resources.
+
+#### **CI/CD Pipeline**
+- **AWS CodePipeline:** Automates deployment pipelines.
+- **AWS CodeBuild:** Compiles and builds the application.
+- **AWS CodeDeploy:** Ensures seamless updates to the application.
